@@ -116,4 +116,4 @@ echo 3. Select prometheus data source
 
 # Forwarding port grafana
 export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=grafana,release=grafana" -o jsonpath="{.items[0].metadata.name}")
-kubectl --namespace monitoring port-forward $POD_NAME 3000:80
+kubectl --namespace monitoring port-forward $POD_NAME 3000
