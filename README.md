@@ -16,3 +16,9 @@ The script of pgk8s.sh contains to install and configure prometheus/grafana in m
 - Install grafana with helm and override grafana value
 - Grafana deployed with password, get the password
 - Forwarding port grafana
+
+After that try to access grafana with
+- localhost:3000
+- login with the password (user "admin")
+- Add the dashboard ID 1860
+- Select prometheus data source
