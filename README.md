@@ -1,5 +1,7 @@
 # local-kube catch
-The script of pgk8s.sh contains to install and configure prometheus/grafana in minikube.
+The script of minikubek8s.sh contains to install and configure prometheus/grafana in minikube.
+Set execute permission to the script with command "chmod +x minikubek8s.sh"
+
 - Install kubectl
 - Install brew
 - Install virtualbox
