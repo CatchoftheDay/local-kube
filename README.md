@@ -1,7 +1,9 @@
 # local-kube catch
 The script of pgk8s.sh contains to install and configure prometheus/grafana in minikube.
 - Install kubectl
-- Install minikube (make sure virtualbox already installed)
+- Install brew
+- Install virtualbox
+- Install minikube 
 - Create Service account tiller
 - Apply service account
 - Create role-binding for service account tiller
