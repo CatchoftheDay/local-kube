@@ -15,7 +15,7 @@ else
 fi
 
 # Install Brew
-echo "-----------------------------brew checking------------------------------"
+echo "-----------------------------brew checking and install virtualbox------------------------------"
 export brew=$(which brew)
 if [ -f "$brew" ]; then
     echo "$brew already exist......................................."
@@ -23,6 +23,16 @@ else
     echo "brew does not exist......................................."
     echo "Installing brew..........................................."
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
+
+# Install Virtualbox
+echo "------------------------------------virtualbox checking----------------------------------------"
+export virtualbox=$(which virtualbox)
+if [ -f "$virtualbox" ]; then
+    echo "$virtualbox already exist......................................."
+else
+    echo "virtualbox does not exist......................................."
+    echo "Installing Virtualbox..........................................."
     brew cask install virtualbox
 fi
 
