@@ -50,43 +50,12 @@ else
     minikube status
 fi
 
-# Create yml config for Service account tiller
-cat <<EOF >./service-account.yml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tiller
-  namespace: kube-system
-EOF
-
-# Create Dir for yml files
-echo "Creating Folder base for yml files........................"
-mkdir base
-mv ./service-account.yml base/
-
 # Apply service account
 echo "Apply Service-account....................................."
 kubectl apply -f base/service-account.yml
 kubectl get serviceaccounts -n kube-system
 
-# Create yml role-binding config for service account tiller 
-cat <<EOF >./role-binding.yml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: tiller
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-  - kind: ServiceAccount
-    name: tiller
-    namespace: kube-system
-EOF
-
 # Apply role binding
-mv ./role-binding.yml base/ 
 kubectl apply -f base/role-binding.yml
 kubectl get clusterrolebindings.rbac.authorization.k8s.io
 
@@ -107,16 +76,7 @@ echo "Deploy tiller............................................."
 helm init --service-account tiller --wait
 kubectl get pods -n kube-system
 
-# Create namespace monitoring
-cat <<EOF >./namespace.yml
-kind: Namespace
-apiVersion: v1
-metadata:
-  name: monitoring
-EOF
-
 # Apply namespace
-mv ./namespace.yml base/
 kubectl apply -f base/namespace.yml
 kubectl get namespaces
 
@@ -126,40 +86,9 @@ sudo helm repo update
 sudo helm install stable/prometheus --namespace monitoring --name prometheus
 kubectl get pods -n monitoring
 
-# Create a Prometheus data source config map
-cat <<EOF >./configmap.yml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-grafana-datasource
-  namespace: monitoring
-  labels:
-    grafana_datasource: '1'
-data:
-  datasource.yaml: |-
-    apiVersion: 1
-    datasources:
-    - name: Prometheus
-      type: prometheus
-      access: proxy
-      orgId: 1
-      url: http://prometheus-server.monitoring.svc.cluster.local
-EOF
-
 # Apply configmap
-mv ./configmap.yml base/
 kubectl apply -f base/configmap.yml
 kubectl get configmaps -n monitoring
-
-# Create values.yml for override grafana value
-cat <<EOF >./values.yml
-sidecar:
-  datasources:
-    enabled: true
-    label: grafana_datasource
-EOF
-
-mv ./values.yml base/
 
 # Install grafana with helm and override grafana value
 echo "install grafana with helm................................."
