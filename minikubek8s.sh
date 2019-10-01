@@ -55,7 +55,7 @@ if [[ "$KUBECTL_VERSION" == *"GitVersion"* ]]; then
 else
   echo "kubectl does not exist...................................."
   echo "Installing kubectl........................................"
-  curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
+  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.15.4/bin/darwin/amd64/kubectl
   sudo chmod +x ./kubectl
   sudo install kubectl /usr/local/bin/
   echo "kubectl already installed" 
@@ -70,7 +70,7 @@ if [[ "$MINIKUBE_VERSION" == *"minikube version:"* ]]; then
 else
   echo "minikube does not exist...................................."
   echo "Installing minikube........................................"
-  curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-amd64 && chmod +x minikube
+  curl -Lo minikube https://storage.googleapis.com/minikube/releases/v1.3.1/minikube-darwin-amd64 && chmod +x minikube
   sudo chmod +x ./minikube
   sudo install minikube /usr/local/bin/
   echo "minikube already installed" 
