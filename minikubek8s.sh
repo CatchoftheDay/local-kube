@@ -137,8 +137,8 @@ kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-pass
 echo "Creating nodePort for service grafana....................."
 export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=grafana,release=grafana" -o jsonpath="{.items[0].metadata.name}")
 kubectl expose pods $POD_NAME --namespace=monitoring --type=NodePort
-url="$(minikube service $POD_NAME --namespace=monitoring --url | awk '{ print $2 }')"
+url="$(minikube service $POD_NAME --namespace=monitoring --url
 
-echo "Login to grafana with thi url $url"
+echo "Login to grafana with thi url \n$url"
 echo "Add the dashboard ID 1860"
 echo "Select prometheus data source"
