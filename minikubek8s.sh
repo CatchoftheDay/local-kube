@@ -1,144 +1,145 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Install Brew
-echo "-----------------------------brew checking and install virtualbox------------------------------"
+def=$'\e[39m'
+yel=$'\e[93m'
+blue=$'\e[34m'
+green=$'\e[32m'
+cyan=$'\e[96m'
+lred=$'\e[101m'
+lback=$'\e[49m'
+
+# Install Brew  
+echo $blue"==> brew checking"
 BREW_VERSION="$(brew --version 2>/dev/null)"
-echo ${BREW_VERSION}
+echo $def${BREW_VERSION}
 if [[ "$BREW_VERSION" == *"Homebrew"* ]]; then
-    echo "brew is installed"
+  echo $green"brew is installed"
 else
-  echo "brew does not exist......................................."
-  echo "please read this link https://brew.sh/ for the information about brew"
-  echo -n "Are you sure to continue installation (Y/N)? "
+  echo $yel"brew does not exist"
+  echo $def"please read this link https://brew.sh/ for the information about brew"
+  echo $def"Are you sure to continue installation (Y/N)? "
   answered=
   while [[ ! $answered ]]; do
     read -r -n 1 -s answer
     if [[ $answer = [Yy] ]]; then
       answered="yes"
+      echo $cyan"Installing homebrew"
       /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     elif [[ $answer = [Nn] ]]; then
       answered="no"
-      echo -e "\nPlease install brew for The missing package manager"
+      echo $yel"Please install brew for The missing package manager"
+      exit
     fi
   done
 fi
 
 # Install Virtualbox
-echo "------------------------------------virtualbox checking----------------------------------------"
-VBOX_VERSION="$(virtualbox --help | head -n 1 2>/dev/null)"
-echo ${VBOX_VERSION}
+echo $blue"==> Virtualbox Checking"
+VBOX_VERSION="$(virtualbox --help 2>/dev/null)"
+echo $def${VBOX_VERSION}
 if [[ "$VBOX_VERSION" == *"Oracle VM VirtualBox"* ]]; then
-  echo "virtualbox is installed......................................."
+  echo $green"Virtualbox is installed"
 else
-  echo "virtualbox does not exist......................................."
-  echo "please read this link https://www.virtualbox.org/ for the information about virtualbox"
-  echo -n "Are you sure to continue installation (Y/N)? "
+  echo $yel"Virtualbox does not exist"
+  echo $def"please read this link https://www.virtualbox.org/ for the information about virtualbox"
+  echo $def"Are you sure to continue installation (Y/N)? "
   answered=
   while [[ ! $answered ]]; do
     read -r -n 1 -s answer
     if [[ $answer = [Yy] ]]; then
       answered="yes"
+      echo $cyan"Installing Virtualbox"
       brew cask install virtualbox
     elif [[ $answer = [Nn] ]]; then
       answered="no"
-      echo -e "\nPlease install virtualbox for minikube vm"
+      echo $yel"You should install virtualbox for minikube vm"
+      exit
     fi
   done
 fi
 
 # Install kubectl
-echo "----------------------------kubectl checking----------------------------"
-KUBECTL_VERSION="$(kubectl version 2>/dev/null)"
-echo ${KUBECTL_VERSION}
-if [[ "$KUBECTL_VERSION" == *"GitVersion"* ]]; then
-  echo "kubectl is installed"
+echo $blue"==> Kubectl checking"
+KUBECTL_VERSION="$(kubectl version --short 2>/dev/null)"
+echo $def${KUBECTL_VERSION}
+if [[ "$KUBECTL_VERSION" == *"Client Version: v"* ]]; then
+  echo $green"kubectl is installed"
 else
-  echo "kubectl does not exist...................................."
-  echo "Installing kubectl........................................"
+  echo $yel"kubectl does not exist"
+  echo $cyan"Installing kubectl"
   curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.15.4/bin/darwin/amd64/kubectl
   sudo chmod +x ./kubectl
   sudo install kubectl /usr/local/bin/
-  echo "kubectl already installed" 
+  echo $green"kubectl already installed" 
 fi
 
 # Install minikube
-echo "----------------------------minikube checking---------------------------"
+echo $blue"==> Minikube checking"
 MINIKUBE_VERSION="$(minikube version 2>/dev/null)"
-echo ${MINIKUBE_VERSION}
+echo $def${MINIKUBE_VERSION}
 if [[ "$MINIKUBE_VERSION" == *"minikube version:"* ]]; then
-  echo "minikube is installed"
+  echo $green"minikube is installed"
 else
-  echo "minikube does not exist...................................."
-  echo "Installing minikube........................................"
+  echo $yel"minikube does not exist"
+  echo $cyan"Installing minikube"
   curl -Lo minikube https://storage.googleapis.com/minikube/releases/v1.3.1/minikube-darwin-amd64 && chmod +x minikube
   sudo chmod +x ./minikube
   sudo install minikube /usr/local/bin/
-  echo "minikube already installed" 
+  echo $green"minikube already installed" 
 fi
 
 # Starting minikube
-echo "----------------------------minikube starting---------------------------"
+echo $green"Minikube starting"$def
 minikube start --vm-driver=virtualbox
 minikube status
 
-# Apply service account
-echo "Apply Service-account....................................."
-kubectl apply -f base/service-account.yml
-kubectl get serviceaccounts -n kube-system
-
-# Apply role binding
-kubectl apply -f base/role-binding.yml
-kubectl get clusterrolebindings.rbac.authorization.k8s.io
+# Apply service account, role-binding, namespace, configmap
+echo $green"Apply service-account, role-binding"$def
+kubectl apply -f base/service-account.yml -f base/role-binding.yml -f base/namespace.yml -f base/configmap.yml
 
 # install helm
-echo "------------------------------helm checking-----------------------------"
-HELM_VERSION="$(helm version 2>/dev/null)"
-echo ${HELM_VERSION}
-if [[ "$HELM_VERSION" == *"SemVer:"* ]]; then
-  echo "helm is installed"
+echo $blue"==> Helm checking"
+HELM_VERSION="$(helm version --short 2>/dev/null)"
+echo $def${HELM_VERSION}
+if [[ "$HELM_VERSION" == *"Client: v"* ]]; then
+  echo $green"helm is installed"
 else
-  echo "helm does not exist...................................."
-  echo "Installing helm........................................"
+  echo $yel"helm does not exist"
+  echo $cyan"Installing helm"
   curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > install-helm.sh
   sudo chmod u+x install-helm.sh
   ./install-helm.sh
-  echo "helm already installed" 
+  echo $green"helm already installed" 
 fi
 
 # Deploy tiller
-echo "Deploy tiller............................................."
+echo $green"Deploy tiller"$def
 helm init --service-account tiller --wait
-kubectl get pods -n kube-system
 
-# Apply namespace
-kubectl apply -f base/namespace.yml
-kubectl get namespaces
-
-# install prometheus with helm
-echo "install prometheus with helm.............................."
+# Install prometheus with helm
+echo $green"Install prometheus with helm"$def
 sudo helm repo update
 sudo helm install stable/prometheus --namespace monitoring --name prometheus
-kubectl get pods -n monitoring
-
-# Apply configmap
-kubectl apply -f base/configmap.yml
-kubectl get configmaps -n monitoring
+echo $cyan"Waiting 2 minutes to allow prometheus to start"$def
+sleep 120
 
 # Install grafana with helm and override grafana value
-echo "install grafana with helm................................."
+echo $green"install grafana with helm"$def
 sudo helm install stable/grafana -f base/values.yml --namespace monitoring --name grafana
-kubectl get pods -n monitoring
+echo $cyan"Waiting 3 minutes to allow grafana to start"$def
+sleep 180
 
 # Grafana deployed with password, get the password
-echo "Generate login password for Grafana"
-kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+echo $green"Generate login password for Grafana"$def
+secretgrafana=$(kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
+echo $lred$secretgrafana$lback
 
 # Creating nodePort for service grafana
-echo "Creating nodePort for service grafana....................."
+echo $green"Creating nodePort for service grafana"$def
 export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=grafana,release=grafana" -o jsonpath="{.items[0].metadata.name}")
 kubectl expose pods $POD_NAME --namespace=monitoring --type=NodePort
-url="$(minikube service $POD_NAME --namespace=monitoring --url
+url="$(minikube service $POD_NAME --namespace=monitoring --url)"
 
-echo "Login to grafana with thi url \n$url"
-echo "Add the dashboard ID 1860"
-echo "Select prometheus data source"
+echo $cyan"Login to grafana with thi url \n$def$url"
+echo $cyan"Add the dashboard ID 1860"
+echo $cyan"Select prometheus data source"
