@@ -1,11 +1,7 @@
 # local-kube catch
-The script of minikubek8s.sh contains to install and configure prometheus/grafana in minikube.
-Set execute permission to the script with command "chmod +x minikubek8s.sh"
-
+The script of pgk8s.sh contains to install and configure prometheus/grafana in minikube.
 - Install kubectl
-- Install brew
-- Install virtualbox
-- Install minikube 
+- Install minikube (make sure virtualbox already installed)
 - Create Service account tiller
 - Apply service account
 - Create role-binding for service account tiller
@@ -19,10 +15,10 @@ Set execute permission to the script with command "chmod +x minikubek8s.sh"
 - Create values.yml for override grafana value
 - Install grafana with helm and override grafana value
 - Grafana deployed with password, get the password
-- Expose port grafana with nodePort
+- Forwarding port grafana
 
 After that try to access grafana with
-- Second url
+- localhost:3000
 - login with the password (user "admin")
 - Add the dashboard ID 1860
 - Select prometheus data source
