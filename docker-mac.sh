@@ -78,8 +78,9 @@ sleep 180
 
 # Grafana deployed with password, get the password
 echo $green"Generate login password for Grafana"$def
-kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode >> grafana_cred.txt
-echo $cyan"Password Login Grafana write it to a file name grafana_cred.txt in this directory"$def
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode >> $HOME/.grafana_cred
+echo $cyan"Password Login Grafana write it to a file name .grafana_cred in this directory"$def
+chmod 400 $HOME/.grafana_cred
 
 # Login to Dashboard Grafana
 echo $cyan"Login to grafana with thi url \n"$cyan"localhost:30001/dashboards"
