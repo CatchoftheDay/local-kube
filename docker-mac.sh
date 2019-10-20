@@ -5,8 +5,19 @@ yel=$'\e[93m'
 blue=$'\e[34m'
 green=$'\e[32m'
 cyan=$'\e[96m'
-lred=$'\e[101m'
-lback=$'\e[49m'
+
+# Install Brew  
+echo $blue"==> brew checking"
+BREW_VERSION="$(brew --version 2>/dev/null)"
+echo $def${BREW_VERSION}
+if [[ "$BREW_VERSION" == *"Homebrew"* ]]; then
+  echo $green"brew is installed"
+else
+  echo $yel"brew does not exist"
+  echo $def"please read this link https://brew.sh/ for the information about brew"
+  echo $cyan"Installing homebrew"
+  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
 
 # Install Docker-Desktop on Mac
 DOCKER_INFO="$(docker info 2>/dev/null | grep ' Operating System: Docker Desktop')"
@@ -14,11 +25,8 @@ echo $def"${DOCKER_INFO}"
 if [[ "$DOCKER_INFO" == *"Operating System: Docker Desktop"* ]]; then
   echo $green"Docker Desktop is installed"
 else
-  echo $green"Install Docker Desktop on Mac"$def
-  curl -LO https://download.docker.com/mac/stable/Docker.dmg
-  hdiutil attach Docker.dmg
-  cp -rf /Volumes/Docker/Docker.app /Applications
-  hdiutil detach /Volumes/Docker
+  echo $green"Installing Docker Desktop on Mac"$def
+  brew cask install Docker
   echo $green"Open Docker.app"
   open /Applications/Docker.app
   echo $cyan"Docker Desktop needs privileged access"
@@ -36,7 +44,7 @@ fi
 
 # Apply service account, role-binding, namespace, configmap
 echo $green"Apply service-account, role-binding"$def
-kubectl apply -f base/service-account.yml -f base/role-binding.yml -f base/namespace.yml -f base/configmap.yml
+kubectl apply -f base/service-account.yaml -f base/role-binding.yaml -f base/namespace.yaml -f base/configmap.yaml
 
 # install helm
 echo $blue"==> Helm checking"
@@ -47,9 +55,7 @@ if [[ "$HELM_VERSION" == *"Client: v"* ]]; then
 else
   echo $yel"helm does not exist"
   echo $cyan"Installing helm"
-  curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > install-helm.sh
-  sudo chmod u+x install-helm.sh
-  ./install-helm.sh
+  brew install kubernetes-helm
   echo $green"helm already installed" 
 fi
 
@@ -66,20 +72,14 @@ sleep 120
 
 # Install grafana with helm and override grafana value
 echo $green"install grafana with helm"$def
-sudo helm install stable/grafana -f base/values.yml --namespace monitoring --name grafana
+sudo helm install stable/grafana -f base/values.yaml --namespace monitoring --name grafana
 echo $cyan"Waiting 3 minutes to allow grafana to start"$def
 sleep 180
 
 # Grafana deployed with password, get the password
 echo $green"Generate login password for Grafana"$def
-secretgrafana=$(kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
-echo $lred$secretgrafana$lback
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode >> grafana_cred.txt
+echo $cyan"Password Login Grafana write it to a file name grafana_cred.txt in this directory"$def
 
-# Creating nodePort for service grafana
-echo $green"Creating nodePort for service grafana"$def
-export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=grafana,release=grafana" -o jsonpath="{.items[0].metadata.name}")
-kubectl expose pods $POD_NAME --namespace=monitoring --type=NodePort
-url="$(kubectl get svc -n monitoring $POD_NAME | awk 'NR == 2 {print $5}' | cut -c19-23)"
-echo $cyan"Login to grafana with thi url \n"$cyan"localhost:"$url""
-echo $cyan"Add the dashboard ID 1860"
-echo $cyan"Select prometheus data source"
+# Login to Dashboard Grafana
+echo $cyan"Login to grafana with thi url \n"$cyan"localhost:30001/dashboards"
