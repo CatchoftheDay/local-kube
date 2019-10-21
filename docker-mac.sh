@@ -8,38 +8,38 @@ cyan=$'\e[96m'
 
 # Install Brew  
 echo $blue"==> brew checking"
-BREW_VERSION="$(brew --version 2>/dev/null)"
-echo $def${BREW_VERSION}
-if [[ "$BREW_VERSION" == *"Homebrew"* ]]; then
+brew_version="$(brew --version 2>/dev/null)"
+echo $def"${brew_version}"
+if [[ "$brew_version" == *"Homebrew"* ]]; then
   echo $green"brew is installed"
 else
   echo $yel"brew does not exist"
-  echo $def"please read this link https://brew.sh/ for the information about brew"
+  echo $def"Please read https://brew.sh/ for information about brew"
   echo $cyan"Installing homebrew"
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 fi
 
 # Install Docker-Desktop on Mac
-DOCKER_INFO="$(docker info 2>/dev/null | grep ' Operating System: Docker Desktop')"
-echo $def"${DOCKER_INFO}"
-if [[ "$DOCKER_INFO" == *"Operating System: Docker Desktop"* ]]; then
+docker_info="$(docker info 2>/dev/null | grep ' Operating System: Docker Desktop')"
+echo $def"${docker_info}"
+if [[ "$docker_info" == *"Operating System: Docker Desktop"* ]]; then
   echo $green"Docker Desktop is installed"
 else
-  echo $green"Installing Docker Desktop on Mac"$def
+  echo $cyan"Installing Docker Desktop on Mac"$def
   brew cask install Docker
-  echo $green"Open Docker.app"
+  echo $cyan"You are prompted to authorize Docker.app with your system password"$def
+  sleep 2
   open /Applications/Docker.app
-  echo $cyan"Docker Desktop needs privileged access"
   until docker info 2>/dev/null | grep "Server Version:";
   do
-  echo $yel"Please Grant privilege access and waiting docker to start "$def;
+  echo $yel"Waiting for Docker to start. Please ensure to grant privileged access"$def;
   sleep 4; 
-  done && echo "Docker is Ready"
+  done && echo "Docker Desktop is running"
   until kubectl version --short 2>/dev/null | grep "Server Version: v";
   do
-  echo $cyan"Please Enable Kubernetes in Preferences Menu and waiting Kubernetes to start"$def;
+  echo $cyan"Please enable kubernetes in preferences menu and Waiting for Kubernetes to start"$def;
   sleep 10;
-  done && echo "Kubernetes is Ready"
+  done && echo "Kubernetes is running"
 fi
 
 # Apply service account, role-binding, namespace, configmap
@@ -48,15 +48,16 @@ kubectl apply -f base/service-account.yaml -f base/role-binding.yaml -f base/nam
 
 # install helm
 echo $blue"==> Helm checking"
-HELM_VERSION="$(helm version --short 2>/dev/null)"
-echo $def${HELM_VERSION}
-if [[ "$HELM_VERSION" == *"Client: v"* ]]; then
-  echo $green"helm is installed"
+helm_version="$(helm version --short 2>/dev/null | grep "Client: v")"
+echo $def"${helm_version}"
+if [[ "$helm_version" == *"Client: v"* ]]; then
+  echo $green"Helm is installed"
 else
-  echo $yel"helm does not exist"
-  echo $cyan"Installing helm"
-  brew install kubernetes-helm
-  echo $green"helm already installed" 
+  echo $green"Installing Helm"$def
+  curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > install-helm.sh
+  sudo chmod u+x install-helm.sh
+  ./install-helm.sh --version v2.14.3
+  rm install-helm.sh
 fi
 
 # Deploy tiller
@@ -64,23 +65,25 @@ echo $green"Deploy tiller"$def
 helm init --service-account tiller --wait
 
 # Install prometheus with helm
-echo $green"Install prometheus with helm"$def
+echo $green"Installing prometheus"$def
 sudo helm repo update
 sudo helm install stable/prometheus --namespace monitoring --name prometheus
-echo $cyan"Waiting 2 minutes to allow prometheus to start"$def
-sleep 120
+echo $cyan"Please wait until prometheus pods is ready"$def;
+kubectl wait --for=condition=Ready --timeout=180s pod -l app=prometheus -n monitoring > /dev/null
+echo $cyan"all containers in prometheus pods are ready"
 
 # Install grafana with helm and override grafana value
-echo $green"install grafana with helm"$def
+echo $green"Installing helm"$def
 sudo helm install stable/grafana -f base/values.yaml --namespace monitoring --name grafana
-echo $cyan"Waiting 3 minutes to allow grafana to start"$def
-sleep 180
+echo $cyan"Please wait until grafana pods is ready"$def;
+kubectl wait --for=condition=Ready --timeout=180s pod -l app=grafana -n monitoring > /dev/null
+echo $cyan"all containers in grafana pods are ready"
 
 # Grafana deployed with password, get the password
-echo $green"Generate login password for Grafana"$def
-kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode >> $HOME/.grafana_cred
-echo $cyan"Password Login Grafana write it to a file name .grafana_cred in this directory"$def
-chmod 400 $HOME/.grafana_cred
+echo $green"Getting Grafana admin password"$def
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode >> $HOME/.grafana_cred \
+&& chmod 400 $HOME/.grafana_cred \
+&& echo $cyan"Wrote Grafana admin password to $HOME/.grafana_cred"$def
 
 # Login to Dashboard Grafana
-echo $cyan"Login to grafana with thi url \n"$cyan"localhost:30001/dashboards"
+echo -e $cyan"Login to grafana with this url \nlocalhost:30001/dashboards"
