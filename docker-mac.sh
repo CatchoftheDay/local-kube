@@ -10,7 +10,7 @@ cyan=$'\e[96m'
 echo $blue"==> brew checking"
 brew_version="$(brew --version 2>/dev/null)"
 echo $def"${brew_version}"
-if [[ "$brew_version" == *"Homebrew"* ]]; then
+if [[ "$brew_version" == *"brew"* ]]; then
   echo $green"brew is installed"
 else
   echo $yel"brew does not exist"
@@ -27,7 +27,7 @@ if [[ "$docker_info" == *"Operating System: Docker Desktop"* ]]; then
 else
   echo $cyan"Installing Docker Desktop on Mac"$def
   brew cask install Docker
-  echo $cyan"You are prompted to authorize Docker.app with your system password"$def
+  echo $cyan"You will be prompted to authorize Docker.app with your system password"$def
   sleep 2
   open /Applications/Docker.app
   until docker info 2>/dev/null | grep "Server Version:";
@@ -37,7 +37,7 @@ else
   done && echo "Docker Desktop is running"
   until kubectl version --short 2>/dev/null | grep "Server Version: v";
   do
-  echo $cyan"Please enable kubernetes in preferences menu and Waiting for Kubernetes to start"$def;
+  echo $cyan"Waiting for Kubernetes to start. Please enable Kubernetes in preferences menu"$def;
   sleep 10;
   done && echo "Kubernetes is running"
 fi
