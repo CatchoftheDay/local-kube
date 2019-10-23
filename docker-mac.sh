@@ -7,15 +7,15 @@ green=$'\e[32m'
 cyan=$'\e[96m'
 
 # Install Brew  
-echo $blue"==> brew checking"
+echo $blue"==> Homebrew checking"
 brew_version="$(brew --version 2>/dev/null)"
 echo $def"${brew_version}"
-if [[ "$brew_version" == *"brew"* ]]; then
-  echo $green"brew is installed"
+if [[ "$brew_version" == *"Homebrew"* ]]; then
+  echo $green"Homebrew is installed"
 else
-  echo $yel"brew does not exist"
-  echo $def"Please read https://brew.sh/ for information about brew"
-  echo $cyan"Installing homebrew"
+  echo $yel"Homebrew does not exist"
+  echo $def"Please read https://brew.sh/ for information about Homebrew"
+  echo $cyan"Installing Homebrew"
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 fi
 
