@@ -35,12 +35,14 @@ else
   echo $yel"Waiting for Docker to start. Please ensure to grant privileged access"$def;
   sleep 4; 
   done && echo "Docker Desktop is running"
-  until kubectl version --short 2>/dev/null | grep "Server Version: v";
-  do
-  echo $cyan"Waiting for Kubernetes to start. Please enable Kubernetes in preferences menu"$def;
-  sleep 10;
-  done && echo "Kubernetes is running"
 fi
+
+# Istall Kubernetes on Mac
+until kubectl version --short 2>/dev/null | grep "Server Version: v";
+do
+echo $cyan"Waiting for Kubernetes to start. Please enable Kubernetes in preferences menu"$def;
+sleep 10;
+done && echo "Kubernetes is running"
 
 # Apply service account, role-binding, namespace, configmap
 echo $green"Apply service-account, role-binding"$def
